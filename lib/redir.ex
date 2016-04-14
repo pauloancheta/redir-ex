@@ -8,15 +8,15 @@ defmodule Redir do
   defp parse_url(url) do
     case get(url) do
       {:ok, %HTTPoison.Response{status_code: status, headers: headers, body: body}} ->
-        response(status, headers, body)
+        response(url, status, headers, body)
       {:error, %HTTPoison.Error{reason: reason}} ->
         reason
     end
   end
 
-  defp response(status, headers, body) do
+  defp response(url, status, headers, body) do
     case status do
-      200 -> body |> String.chunk(:printable);
+      200 -> url;
       302 -> get_url_from_header(headers);
       301 -> get_url_from_header(headers);
       404 -> IO.puts "NOT FOUND!"
