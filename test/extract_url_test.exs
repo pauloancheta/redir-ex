@@ -11,11 +11,11 @@ defmodule ExtractUrlTest do
   end
 
   test "invalid uri" do
-    assert_raise RuntimeError, "Invalid URI authority", fn ->
+    assert_raise InvalidSchemeError, "Invalid URI scheme", fn ->
       ExtractUrl.call("something http://www.google.com")
     end
 
-    assert_raise RuntimeError, "Invalid URI authority", fn ->
+    assert_raise InvalidSchemeError, "Invalid URI scheme", fn ->
       ExtractUrl.call("www.google.com")
     end
   end
