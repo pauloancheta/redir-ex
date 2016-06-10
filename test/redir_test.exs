@@ -23,6 +23,12 @@ defmodule RedirTest do
     assert Redir.final_url(uri) == "Server error!"
   end
 
+  test "infinite" do
+    Redir.start
+    uri = "http://httpmock.herokuapp.com/redirect-with-meta?to=http://brewhouse.io"
+    assert Redir.final_url(uri) == "http://brewhouse.io"
+  end
+
 # http => http
 # https => http
 # http => https
