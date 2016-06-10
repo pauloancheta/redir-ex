@@ -3,11 +3,11 @@ defmodule ExtractUrlTest do
   doctest ExtractUrl
 
   test "valid uri" do
-    uri = ExtractUrl.call("http://www.google.com/awesome_page/?query=lol")
+    uri = ExtractUrl.call("http://www.google.com/awesome_page/?query=lol lol")
     assert uri.authority == "www.google.com"
     assert uri.scheme == "http"
-    assert uri.query == "query=lol"
     assert String.match?(uri.path, ~r/awesome_page/)
+    assert uri.query == "query=lol%20lol"
   end
 
   test "invalid uri" do
