@@ -37,7 +37,9 @@ defmodule Redir do
 
   defp contains_meta_refresh?(body) do
     body
-    |> String.contains?("meta http-equiv=")
+    |> Floki.attribute("meta", "http-equiv")
+    |> List.to_string
+    |> String.contains?("refresh")
   end
 
   defp url_with_meta(body) do
