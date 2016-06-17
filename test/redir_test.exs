@@ -29,6 +29,12 @@ defmodule RedirTest do
     assert Redir.final_url(uri) == "http://brewhouse.io"
   end
 
+  test "301 with location without a host or scheme" do
+    Redir.start
+    uri = "https://www.pagerduty.com/lp/saas-on-the-line/"
+    assert Redir.final_url(uri) == "https://www.pagerduty.com/lp/d/saas-on-the-line/"
+  end
+
 # http => http
 # https => http
 # http => https
