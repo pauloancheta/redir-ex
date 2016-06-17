@@ -6,6 +6,11 @@ defmodule ExtractUrl do
     |> prune
   end
 
+  def add_base_url(base_url, url) do
+    base = URI.parse(base_url)
+    "#{base.scheme}://#{base.host}#{url}"
+  end
+
   defp prune(uri) do
     cond do
       has_invalid_scheme(uri.scheme) -> raise UriError.InvalidSchemeError

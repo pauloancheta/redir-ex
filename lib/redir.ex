@@ -15,24 +15,25 @@ defmodule Redir do
           contains_meta_refresh?(body) -> url_with_meta(body)
           true -> url
         end
-      {:ok, %HTTPoison.Response{status_code: 500}} ->
-        "Server error!"
       {:ok, %HTTPoison.Response{status_code: 302, headers: headers}} ->
-        get_url_from_header(headers)
+        get_url_from_header(url, headers)
       {:ok, %HTTPoison.Response{status_code: 301, headers: headers}} ->
-        get_url_from_header(headers)
-      {:ok, %HTTPoison.Response{status_code: _not_found}} ->
-        "Not found!"
-      {:error, %HTTPoison.Error{reason: reason}} ->
-        reason
+        get_url_from_header(url, headers)
+      {:ok, %HTTPoison.Response{status_code: 500}} -> "Server error!"
+      {:ok, %HTTPoison.Response{status_code: _not_found}} -> "Not found!"
+      {:error, %HTTPoison.Error{reason: reason}} -> reason
     end
   end
 
-  defp get_url_from_header(headers) do
-    headers
-    |> List.keyfind("Location", 0)
-    |> elem(1)
-    |> parse_url
+  defp get_url_from_header(base_url, headers) do
+    url = headers
+          |> List.keyfind("Location", 0)
+          |> elem(1)
+    if !String.contains?(url, "http://") do
+      ExtractUrl.add_base_url(base_url, url)
+    else
+      url
+    end
   end
 
   defp contains_meta_refresh?(body) do
