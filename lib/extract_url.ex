@@ -1,6 +1,7 @@
 defmodule ExtractUrl do
   def call(url) do
     url
+    |> String.lstrip
     |> URI.encode
     |> URI.parse
     |> prune

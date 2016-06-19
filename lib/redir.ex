@@ -30,14 +30,20 @@ defmodule Redir do
   end
 
   defp get_url_from_header(base_url, headers) do
-    url = headers
-          |> List.keyfind("Location", 0)
-          |> elem(1)
+    url = get_location(headers) |> elem(1)
     if !String.contains?(url, "http://") do
       ExtractUrl.add_base_url(base_url, url)
     else
       url
     end
+  end
+
+  defp get_location(headers) do
+    loc = List.keyfind(headers, "Location", 0)
+    if loc == nil do
+      loc = List.keyfind(headers, "location", 0)
+    end
+    loc
   end
 
   defp contains_meta_refresh?(body) do
