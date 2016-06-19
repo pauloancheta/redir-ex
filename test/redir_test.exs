@@ -35,6 +35,12 @@ defmodule RedirTest do
     assert Redir.final_url(uri) == "https://www.pagerduty.com/lp/d/saas-on-the-line/"
   end
 
+  test "with bad request" do
+    Redir.start
+    uri = "http://talk.buildinbombay.com/t/build-in-bombay-s-aua-with-super"
+    assert Redir.final_url(uri) == %CaseClauseError{term: {:error, :bad_request}}
+  end
+
 # http => http
 # https => http
 # http => https

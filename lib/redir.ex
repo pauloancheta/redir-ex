@@ -9,19 +9,23 @@ defmodule Redir do
   end
 
   defp parse_url(url) do
-    case get(url) do
-      {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
-        cond do
-          contains_meta_refresh?(body) -> url_with_meta(body)
-          true -> url
-        end
-      {:ok, %HTTPoison.Response{status_code: 302, headers: headers}} ->
-        get_url_from_header(url, headers)
-      {:ok, %HTTPoison.Response{status_code: 301, headers: headers}} ->
-        get_url_from_header(url, headers)
-      {:ok, %HTTPoison.Response{status_code: 500}} -> "Server error!"
-      {:ok, %HTTPoison.Response{status_code: _not_found}} -> "Not found!"
-      {:error, %HTTPoison.Error{reason: reason}} -> reason
+    try do
+      case get(url) do
+        {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
+          cond do
+            contains_meta_refresh?(body) -> url_with_meta(body)
+            true -> url
+          end
+        {:ok, %HTTPoison.Response{status_code: 302, headers: headers}} ->
+          get_url_from_header(url, headers)
+        {:ok, %HTTPoison.Response{status_code: 301, headers: headers}} ->
+          get_url_from_header(url, headers)
+        {:ok, %HTTPoison.Response{status_code: 500}} -> "Server error!"
+        {:ok, %HTTPoison.Response{status_code: _not_found}} -> "Not found!"
+        {:error, %HTTPoison.Error{reason: reason}} -> reason
+      end
+    rescue
+      e in CaseClauseError -> e
     end
   end
 
