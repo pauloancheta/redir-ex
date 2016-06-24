@@ -44,7 +44,7 @@ defmodule Redir do
 
   defp get_url_from_header(base_url, headers) do
     url = get_location(headers) |> elem(1)
-    if !String.contains?(url, "http://") do
+    if !String.contains?(url, "http") do
       ExtractUrl.add_base_url(base_url, url)
     else
       url
@@ -67,10 +67,23 @@ defmodule Redir do
   end
 
   defp contains_meta_refresh?(body) do
-    body
+    meta_http_equiv = body
+    |> clean_body
     |> Floki.attribute("meta", "http-equiv")
     |> List.to_string
-    |> String.contains?("refresh")
+
+    meta_content = body
+    |> clean_body
+    |> Floki.attribute("meta", "content")
+    |> List.to_string
+
+    String.contains?(meta_http_equiv, "refresh") && String.contains?(meta_content, "url")
+  end
+
+  defp clean_body(body) do
+    String.chunk(body, :printable)
+    |> Enum.filter(&(String.valid?(&1)))
+    |> List.to_string
   end
 
   defp url_with_meta(body) do
