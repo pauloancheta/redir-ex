@@ -1,6 +1,9 @@
 defmodule Redir do
   use HTTPoison.Base
 
+  # Returns:
+  #   { :ok, "http://....." }
+  #   { :error, "Error message" }
   def final_url(url) do
     url
     |> ExtractUrl.call
@@ -10,24 +13,34 @@ defmodule Redir do
 
   defp parse_url(url) do
     try do
-      case get(url) do
-        {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
-          cond do
-            contains_meta_refresh?(body) -> url_with_meta(body)
-            true -> url
-          end
-        {:ok, %HTTPoison.Response{status_code: 302, headers: headers}} ->
-          get_url_from_header(url, headers)
-        {:ok, %HTTPoison.Response{status_code: 301, headers: headers}} ->
-          get_url_from_header(url, headers)
-        {:ok, %HTTPoison.Response{status_code: 500}} -> "Server error!"
-        {:ok, %HTTPoison.Response{status_code: _not_found}} -> "Not found!"
-        {:error, %HTTPoison.Error{reason: reason}} -> reason
-      end
-    rescue
-      e in CaseClauseError -> e
+      { :ok, response } = get(url)
+      process_response(response.status_code, url, response.headers, response.body)
+     rescue
+       # HTTPoison fails to catch { :error, :bad_request }
+       e in CaseClauseError -> e.term
+     end
+  end
+
+  defp process_response(200, url, headers, body) do
+    if meta_url = extract_meta(body) do
+      parse_url(meta_url)
+    else
+      { :ok, url }
     end
   end
+
+  defp process_response(301, url, headers, body) do
+    parse_url(get_url_from_header(url, headers))
+  end
+
+  defp process_response(302, url, headers, body) do
+    parse_url(get_url_from_header(url, headers))
+  end
+
+  defp process_response(code, url, headers, body) do
+    { :error, "Error #{code}" }
+  end
+
 
   defp get_url_from_header(base_url, headers) do
     url = get_location(headers) |> elem(1)
@@ -44,6 +57,13 @@ defmodule Redir do
       loc = List.keyfind(headers, "location", 0)
     end
     loc
+  end
+
+  defp extract_meta(body) do
+    cond do
+      contains_meta_refresh?(body) -> url_with_meta(body)
+      true -> nil
+    end
   end
 
   defp contains_meta_refresh?(body) do
